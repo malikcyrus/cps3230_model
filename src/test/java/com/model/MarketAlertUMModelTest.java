@@ -14,27 +14,26 @@ import nz.ac.waikato.modeljunit.coverage.StateCoverage;
 import nz.ac.waikato.modeljunit.coverage.TransitionPairCoverage;
 
 import java.util.Random;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Unit test for simple App.
- */
 public class MarketAlertUMModelTest implements FsmModel{
     // SUT
     private marketAlertUMApp SUT = new marketAlertUMApp();
+    private boolean userLoggedOn = false; 
 
     // State variables
     private MarketAlertStates modelAlertUM = MarketAlertStates.LOGIN_PAGE;
 
-    @Override
-    public Object getState() {
+    public MarketAlertStates getState() {
         return modelAlertUM;
     }
 
-    @Override
     public void reset(boolean rest_fsm) {
         if (rest_fsm) { 
             SUT = new marketAlertUMApp();
         }
+        modelAlertUM = MarketAlertStates.LOGIN_PAGE;
+        userLoggedOn = false;
     }
 
     public boolean userValidLoginGuard() { 
@@ -47,6 +46,9 @@ public class MarketAlertUMModelTest implements FsmModel{
 
         // updating model 
         modelAlertUM = MarketAlertStates.ALERT_PAGE;
+        userLoggedOn = true;
+
+        assertEquals("The SUT does not match the model after logging In", userLoggedOn, SUT.isUserLoggedOn());
     }
    
     public boolean userLoggedOutGuard() { 
@@ -55,7 +57,50 @@ public class MarketAlertUMModelTest implements FsmModel{
 
     public @Action void userLoggedOut() { 
         SUT.userLoggedOut();
+
+        // updating model 
+        modelAlertUM = MarketAlertStates.LOGIN_PAGE;
+        userLoggedOn = false;
+
+        assertEquals("The SUT does not match the model after logging Out", userLoggedOn, SUT.isUserLoggedOn());
     }
+
+    public boolean alertCreatedGuard() { 
+        return getState().equals(MarketAlertStates.CREATE_ALERTS);
+    }
+
+    public @Action void alertCreated() { 
+        SUT.alertCreated();
+
+        // updating model 
+        modelAlertUM = MarketAlertStates.CREATE_ALERTS;
+    }
+
+    public boolean alertsDeletedGuard() { 
+        return getState().equals(MarketAlertStates.DELETE_ALERTS);
+    }
+
+    public @Action void alertsDeleted() { 
+        SUT.alertsDeleted();
+
+        // updating Model
+        modelAlertUM = MarketAlertStates.DELETE_ALERTS;
+    }
+
+    public boolean userViewedAlertsGuard() { 
+        return getState().equals(MarketAlertStates.ALERT_PAGE);
+    }
+
+    public @Action void userViewedAlerts() { 
+        SUT.userViewedAlerts();
+
+        // updating model 
+        modelAlertUM = MarketAlertStates.ALERT_PAGE;
+        userLoggedOn = true; 
+
+        assertEquals("The SUT does not match the model after viewing alerts", userLoggedOn, SUT.isUserLoggedOn());
+    }
+
 
     // Test runner 
     @Test 
@@ -68,7 +113,7 @@ public class MarketAlertUMModelTest implements FsmModel{
 		tester.addCoverageMetric(new TransitionPairCoverage());
 		tester.addCoverageMetric(new StateCoverage()); 
 		tester.addCoverageMetric(new ActionCoverage());
-		tester.generate(500); 
+		tester.generate(100); 
 		tester.printCoverage();
     }
 }

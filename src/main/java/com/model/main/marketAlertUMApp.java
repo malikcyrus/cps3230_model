@@ -8,6 +8,7 @@ public class marketAlertUMApp {
     ChromeDriver driver;
     ArrayList <Alert> alerts;
     Alert alert;
+    private boolean userLoggedOn = false; 
 		
     public marketAlertUMApp() { 
 
@@ -21,7 +22,11 @@ public class marketAlertUMApp {
 		driver = new ChromeDriver();
     }  
 
-    boolean alertCreated() { 
+    public boolean isUserLoggedOn(){ 
+        return userLoggedOn;
+    }
+
+    public boolean alertCreated() { 
         PostService post = new PostService();
         try {
             if (post.postAlerts(alerts)) { 
@@ -36,7 +41,7 @@ public class marketAlertUMApp {
         return true; 
     }
 
-    boolean alertsDeleted() { 
+    public boolean alertsDeleted() { 
         PostService post = new PostService();
         try {
             if (post.removeAllAlerts()) { 
@@ -47,14 +52,19 @@ public class marketAlertUMApp {
         } catch (Exception e){ 
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     public boolean userValidLogin() { 
+        if(driver.toString().contains("(null)")){
+            driver = new ChromeDriver();
+        }
+
         MarketAlertLogin login = new MarketAlertLogin(driver);
         login.inputUserID("31a7cb0e-e0e5-4a05-9351-c074815f7b8a");
 
         if(driver.getCurrentUrl().equals("https://www.marketalertum.com/Alerts/List")){ 
+            userLoggedOn = true;
             return true; 
         } else { 
             throw new IllegalStateException();
@@ -62,13 +72,14 @@ public class marketAlertUMApp {
     }
 
     public boolean userLoggedOut() { 
-        MarketAlertList.clickLogOut(driver);
-
-        if(driver.getCurrentUrl().equals("https://www.marketalertum.com/")) {
+        if(userLoggedOn) { 
+            MarketAlertList.clickLogOut(driver);
+            driver.quit();
+            userLoggedOn = false;
             return true; 
         } else { 
             throw new IllegalStateException();
-        }
+        }       
     }
 
     public void userViewedAlerts() { 
